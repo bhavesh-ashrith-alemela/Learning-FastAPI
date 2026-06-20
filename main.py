@@ -16,3 +16,8 @@ def about():
 @app.get("/users")
 def users():
     return {"users": ["Mohith","Rohit","Amit"]}
+
+#defined users route
+@app.get("/users/{user_id}")
+def get_user(user_id: int):
+    return {"user_id": user_id}
