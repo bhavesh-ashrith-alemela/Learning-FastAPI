@@ -1,6 +1,16 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
+
+class Address(BaseModel):
+    city: str
+    zip_code: str
+
+class User(BaseModel):
+    name: str
+    age: int
+    address: Address
 
 #Home Route
 @app.get("/")
@@ -25,3 +35,7 @@ def get_users(name: str = None):
 @app.get("/items")
 def get_items(name: str = None, price: int=0):
     return {"name": name,"price": price}
+
+@app.post("/create_user")
+def create_user(user: User):
+    return {"message": "User created successfully", "user": user}
