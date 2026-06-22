@@ -3,6 +3,7 @@ import sqlite3
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import time
+import asyncio
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
@@ -108,7 +109,6 @@ def user_not_found(request:Request, exc:UserNotFoundException):
 #Home Route
 @app.get("/")
 def home():
-
     return {"message": "Welcome to the FastAPI, DB Connected fine"}
 
 #Create API
@@ -267,4 +267,12 @@ async def my_middlewarwe(request: Request,call_next):
 def data():
     return {
         "message": "SQLite connected fine"
+    }
+
+#Async and Await
+@app.get("/abc")
+async def home():
+    await asyncio.sleep(3)
+    return {
+        "message": "Async API"
     }
