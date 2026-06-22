@@ -1,8 +1,21 @@
 from fastapi import FastAPI, status, HTTPException, Request, Depends, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+import time
 
 app = FastAPI()
+
+@app.middleware("http")
+async def log_middleware(request: Request, call_next):
+    start_time = time.time()
+
+    response = await call_next(request)
+
+    process_time = time.time()-start_time
+
+    print(f"path:{request.url.path} | Time:{process_time}")
+
+    return response
 
 def verify_token(token: str = Header(None)):
     if token != "mysecrettoken":
@@ -126,3 +139,13 @@ def secure(user = Depends(verify_token)):
         "message": "secure data accessed",
         "user": user
     }
+
+@app.middleware("http")
+async def my_middlewarwe(request: Request,call_next):
+    print("Request Received")
+
+    response = await call_next(request)
+
+    print("Request sent")
+
+    return response
