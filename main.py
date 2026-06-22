@@ -1,8 +1,28 @@
-from fastapi import FastAPI, status, HTTPException, Request
+from fastapi import FastAPI, status, HTTPException, Request, Depends, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 app = FastAPI()
+
+def verify_token(token: str = Header(None)):
+    if token != "mysecrettoken":
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized"
+        )
+    return {
+        "user": "Authorized user"
+    }
+
+def common_logic():
+    return {
+        "message": "common logic executed"
+    }
+ 
+def get_current_user():
+    return {
+        "user": "Bhavesh"
+    }
 
 class UserNotFoundException(Exception):
     def __init__(self, name:str):
@@ -76,7 +96,6 @@ def get_user(name:str):
         "name": name
     }
 
-
 @app.get("/client/{user_id}")
 def get_user(user_id: int):
     if user_id != 1:
@@ -87,4 +106,23 @@ def get_user(user_id: int):
     return {
         "id": 1,
         "name": "bhavesh"
+    }
+
+@app.get("/home")
+def home(data= Depends(common_logic)):
+    return data
+
+@app.get("/profile")
+def profile(user = Depends(get_current_user)):
+    return user
+
+@app.get("/dashboard")
+def dashboard(user = Depends(get_current_user)):
+    return user
+
+@app.get("/secure")
+def secure(user = Depends(verify_token)):
+    return {
+        "message": "secure data accessed",
+        "user": user
     }
