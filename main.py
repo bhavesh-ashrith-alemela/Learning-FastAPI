@@ -1,9 +1,53 @@
 from fastapi import FastAPI, status, HTTPException, Request, Depends, Header
+import sqlite3
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import time
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 app = FastAPI()
+
+#con = sqlite3.connect("test.db", check_same_thread=False)
+
+#cursor = con.cursor()
+
+#cursor.execute("""
+#CREATE TABLE IF NOT EXISTS todos(
+#        id INTEGER PRIMARY KEY,
+#       title TEXT,
+#       completed TEXT
+#       )
+#""")
+
+#con.commit()
+
+DATABASE_URL = "sqlite:///./test.db"
+
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread":False}
+)
+
+sessionLocal = sessionmaker(bind=engine)
+
+Base = declarative_base()
+
+class Todo(Base):
+    __tablename__ = "todos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    completed = Column(String)
+
+Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = sessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @app.middleware("http")
 async def log_middleware(request: Request, call_next):
@@ -57,8 +101,9 @@ def user_not_found(request:Request, exc:UserNotFoundException):
 
 #Home Route
 @app.get("/")
-def home():
-    return {"message": "Welcome to the FastAPI"}
+def home(db: Session = Depends(get_db)):
+
+    return {"message": "Welcome to the FastAPI, DB Connected fine"}
 
 #About Route
 @app.get("/about")
@@ -149,3 +194,9 @@ async def my_middlewarwe(request: Request,call_next):
     print("Request sent")
 
     return response
+
+@app.get("/data")
+def data():
+    return {
+        "message": "SQLite connected fine"
+    }
