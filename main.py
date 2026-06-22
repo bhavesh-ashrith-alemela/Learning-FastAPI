@@ -22,17 +22,22 @@ app = FastAPI()
 
 #con.commit()
 
+#DataBase URL
 DATABASE_URL = "sqlite:///./test.db"
 
+#Engine Create (DB connection)
 engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread":False}
 )
 
+#Session for DB Operations
 sessionLocal = sessionmaker(bind=engine)
 
+#BaseModel for DB
 Base = declarative_base()
 
+#Table (also a Model)
 class Todo(Base):
     __tablename__ = "todos"
 
@@ -40,6 +45,7 @@ class Todo(Base):
     title = Column(String)
     completed = Column(String)
 
+#Table Created 
 Base.metadata.create_all(bind=engine)
 
 def get_db():
@@ -101,14 +107,76 @@ def user_not_found(request:Request, exc:UserNotFoundException):
 
 #Home Route
 @app.get("/")
-def home(db: Session = Depends(get_db)):
+def home():
 
     return {"message": "Welcome to the FastAPI, DB Connected fine"}
 
-#About Route
-@app.get("/about")
-def about():
-    return {"message": "This is an about page."}
+#Create API
+@app.post("/todos")
+def create_todo(title:str, db:Session = Depends(get_db)):
+    todo = Todo(title=title, completed="False")
+    db.add(todo)
+    db.commit()
+    db.refresh(todo)
+    return {
+        "message": "Todo created",
+        "data": todo
+    }
+
+#Read all data
+@app.get("/todos")
+def get_todos(db:Session = Depends(get_db)):
+    todos = db.query(Todo).all()
+    return {
+        "Total": len(todos),
+        "data": todos
+    }
+
+#Read data by Id
+@app.get("/todos/{todo_id}")
+def get_todo(todo_id:int, db:Session = Depends(get_db)):
+    todo = db.query(Todo).filter(Todo.id == todo_id).first()
+    if not todo :
+        raise HTTPException(
+            status_code=404,
+            detail="Todo not found"
+        )
+    return {
+        "message": "Found Todo",
+        "data": todo
+    }
+
+#Update data by id
+@app.put("/todos/{todo_id}")
+def put_todo(todo_id:int, title:str, db:Session = Depends(get_db)):
+    todo = db.query(Todo).filter(Todo.id == todo_id).first()
+    if not todo :
+        raise HTTPException(
+            status_code=404,
+            detail="Todo not found"
+        )
+    todo.title = title
+    db.commit()
+    db.refresh(todo)
+    return {
+        "message": "Todo updated",
+        "data": todo
+    }
+
+#Delete data
+@app.delete("/todos/{todo_id}")
+def del_todo(todo_id:int, db:Session = Depends(get_db)):
+    todo = db.query(Todo).filter(Todo.id == todo_id).first()
+    if not todo :
+        raise HTTPException(
+            status_code=404,
+            detail="Todo not found"
+        )
+    db.delete(todo)
+    db.commit()
+    return {
+        "message": "Todo deleted"
+    }
 
 #Query Parameters
 @app.get("/users")
