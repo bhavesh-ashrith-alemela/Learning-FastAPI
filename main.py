@@ -13,8 +13,19 @@ from passlib.context import CryptContext
 from fastapi.staticfiles import StaticFiles
 import os
 import shutil
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+origins = ["http://localhost:1573"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = origins,
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"]
+)
 
 #JWT Config
 SECRET_KEY = "mysecret"
