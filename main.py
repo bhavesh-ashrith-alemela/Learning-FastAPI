@@ -14,23 +14,25 @@ from fastapi.staticfiles import StaticFiles
 import os
 import shutil
 from fastapi.middleware.cors import CORSMiddleware
+# from dotenv import load_dotenv
+from config import settings
 
 app = FastAPI()
 
-origins = ["http://localhost:1573"]
+# load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+DB_URL = os.getenv("DB_URL")
+origins = settings.origins
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins = origins,
     allow_credentials = True,
     allow_methods = ["*"],
-    allow_headers = ["*"]
+    allow_headers = ["*"] 
 )
 
 #JWT Config
-SECRET_KEY = "mysecret"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRY_MINUTES = 30
 
 #Password hashing setup
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -208,11 +210,11 @@ def  get_file(filename:str):
 #con.commit()
 
 #DataBase URL
-DATABASE_URL = "sqlite:///./test.db"
+# DATABASE_URL = "sqlite:///./test.db"
 
 #Engine Create (DB connection)
 engine = create_engine(
-    DATABASE_URL,
+    DB_URL,
     connect_args={"check_same_thread":False}
 )
 
