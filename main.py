@@ -16,6 +16,8 @@ import shutil
 from fastapi.middleware.cors import CORSMiddleware
 # from dotenv import load_dotenv
 from config import settings
+import requests
+
 
 app = FastAPI()
 
@@ -282,6 +284,24 @@ def user_not_found(request:Request, exc:UserNotFoundException):
         }
     )
 
+@app.get("/posts")
+def get_posts():
+    url = "https://jsonplaceholder.typicode.com/posts"
+    response = requests.get(url)
+    return response.json()
+
+@app.get("/posts/{post_id}")
+def get_posts_id(post_id:int):
+    url = f"https://jsonplaceholder.typicode.com/posts/{post_id}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=404,
+            detail="Page not found"
+        )
+    return response.json()
+
+
 #Home Route
 @app.get("/")
 def home():
@@ -466,4 +486,16 @@ async def home():
     await asyncio.sleep(3)
     return {
         "message": "Async API"
+    }
+
+@app.get("/test")
+def home():
+    return {
+        "message": "Hello Bhavesh"
+    }
+
+@app.get("/add")
+def add(a:int, b:int):
+    return {
+        "return": a+b
     }
